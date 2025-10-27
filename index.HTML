@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KDA Excellence Nexus</title>
+    <!-- Load Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Use Inter Font -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+
+        /* Custom scrollbar for visual appeal */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background-color: #FBBF24; border-radius: 10px; }
+        ::-webkit-scrollbar-track { background: #111827; }
+
+        /* Custom styles for the Achievement Card hover effect */
+        .achievement-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        .achievement-card:hover {
+            transform: translateY(-5px);
+            /* Dark mode friendly shadow */
+            box-shadow: 0 15px 30px -5px rgba(251, 191, 36, 0.4), 0 5px 15px -5px rgba(251, 191, 36, 0.1);
+        }
+        
+        /* Make header sticky */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'kda-navy': '#1E3A8A', // Deep Navy Blue (Primary Accent)
+                        'kda-gold': '#FBBF24', // Vibrant Gold/Amber (Highlight)
+                        'kda-light': '#F9FAFB', // Light Text/Foreground
+                        'kda-dark': '#0F172A', // Very Dark Blue (Background)
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<!-- Switched to dark background and light text -->
+<body class="bg-kda-dark text-kda-light min-h-screen flex flex-col">
+
+    <!-- Header & Navigation - Made sticky -->
+    <header class="bg-kda-navy shadow-2xl sticky-header">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <h1 class="text-3xl font-extrabold text-kda-gold tracking-wider">KDA Excellence Nexus</h1>
+            <nav>
+                <a href="#feed-section" class="text-kda-light hover:text-kda-gold font-medium px-3 py-2 rounded-md transition duration-150">Achievements</a>
+                <a href="#admin-section" id="nav-admin-btn" class="hidden bg-kda-gold text-kda-dark hover:bg-yellow-400 font-bold px-4 py-2 rounded-lg transition duration-150 ml-4 shadow-lg">Admin Panel</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- Hero Section - Updated for Dark Mode -->
+        <section id="hero-section" class="text-center mb-12 bg-gray-800 p-8 rounded-xl shadow-2xl border-b-4 border-kda-gold">
+            <h2 class="text-5xl font-extrabold text-kda-gold mb-4">Celebrating KDA's Brightest</h2>
+            <p class="text-lg text-gray-300 max-w-3xl mx-auto">
+                Discover the hard work, talent, and success stories of our students in academics, sports, arts, and leadership. Their achievements inspire us all.
+            </p>
+            <div id="user-info" class="mt-4 text-sm text-gray-400"></div>
+        </section>
+
+        <!-- Search and Filter Bar - Updated for Dark Mode -->
+        <section class="mb-8 p-4 bg-gray-900 rounded-xl shadow-xl flex flex-col md:flex-row gap-4 items-center border border-gray-700" id="search-filter-section">
+            <input type="text" id="search-input" oninput="applyFilters()" placeholder="Search by student name or keywords..."
+                   class="flex-grow p-3 border-2 border-kda-gold rounded-lg focus:ring-kda-gold focus:border-kda-gold transition duration-150 bg-gray-700 text-kda-light placeholder-gray-400">
+
+            <select id="category-filter" onchange="applyFilters()"
+                    class="w-full md:w-auto p-3 border-2 border-kda-gold rounded-lg bg-gray-700 text-kda-light focus:ring-kda-gold focus:border-kda-gold transition duration-150">
+                <option value="all">All Categories</option>
+                <option value="Academic">Academic</option>
+                <option value="Sports">Sports</option>
+                <option value="Arts">Arts</option>
+                <option value="Leadership">Leadership</option>
+            </select>
+
+            <button onclick="clearFilters()" class="w-full md:w-auto p-3 bg-gray-600 text-kda-light rounded-lg hover:bg-gray-500 transition duration-150 font-medium shadow-md">
+                Clear Filters
+            </button>
+        </section>
+
+        <!-- Achievement Feed -->
+        <section id="feed-section" class="mb-12">
+            <h2 class="text-3xl font-bold text-kda-gold mb-6 border-b-2 border-kda-gold pb-2">Latest Achievements</h2>
+            <div id="achievement-feed" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Achievements will be dynamically inserted here -->
+            </div>
+            <p id="loading-message" class="text-center py-10 text-xl text-gray-500">Loading achievements...</p>
+            <p id="no-results-message" class="text-center py-10 text-xl text-gray-500 hidden">No achievements found matching your criteria.</p>
+        </section>
+
+        <!-- Admin Panel (Mock - Designed for Dark Mode) -->
+        <section id="admin-section" class="hidden bg-gray-900 p-8 rounded-xl shadow-2xl mb-12 border border-kda-navy">
+            <h2 class="text-3xl font-bold text-kda-gold mb-6 border-b-2 border-kda-gold pb-2">Submit New Achievement</h2>
+            <form id="add-achievement-form" class="space-y-4">
+                <div>
+                    <label for="studentName" class="block text-kda-light font-medium">Student Name(s)</label>
+                    <input type="text" id="studentName" required
+                           class="w-full p-3 rounded-lg border-gray-700 bg-gray-700 text-white focus:ring-kda-gold focus:border-kda-gold">
+                </div>
+                <div>
+                    <label for="achievementTitle" class="block text-kda-light font-medium">Achievement Title</label>
+                    <input type="text" id="achievementTitle" required
+                           class="w-full p-3 rounded-lg border-gray-700 bg-gray-700 text-white focus:ring-kda-gold focus:border-kda-gold">
+                </div>
+                <div>
+                    <label for="category" class="block text-kda-light font-medium">Category</label>
+                    <select id="category" required
+                            class="w-full p-3 rounded-lg border-gray-700 bg-gray-700 text-white focus:ring-kda-gold focus:border-kda-gold">
+                        <option value="Academic">Academic</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Arts">Arts</option>
+                        <option value="Leadership">Leadership</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="description" class="block text-kda-light font-medium">Story / Description</label>
+                    <textarea id="description" rows="4" required
+                              class="w-full p-3 rounded-lg border-gray-700 bg-gray-700 text-white focus:ring-kda-gold focus:border-kda-gold"></textarea>
+                </div>
+                <div>
+                    <label for="mediaUrl" class="block text-kda-light font-medium">Photo/Video URL (Optional)</label>
+                    <input type="url" id="mediaUrl" placeholder="Link to photo or video evidence"
+                           class="w-full p-3 rounded-lg border-gray-700 bg-gray-700 text-white focus:ring-kda-gold focus:border-kda-gold">
+                </div>
+                <button type="submit" class="w-full p-3 bg-kda-gold text-kda-dark font-bold rounded-lg hover:bg-yellow-400 transition duration-150 shadow-xl">
+                    Post Achievement
+                </button>
+            </form>
+            <div id="admin-message" class="mt-4 text-center text-kda-gold hidden"></div>
+        </section>
+
+    </main>
+
+    <!-- Footer - Updated for Dark Mode -->
+    <footer class="bg-gray-900 text-gray-400 py-6 mt-12 border-t border-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p>&copy; 2024 KDA Academy. Excellence Celebrated. User ID: <span id="current-user-id" class="text-kda-gold">Authenticating...</span></p>
+        </div>
+    </footer>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, query, addDoc, serverTimestamp, getDocs, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Set Firebase logging level for debugging
+        setLogLevel('Debug');
+
+        // Global Firebase variables
+        let app;
+        let db;
+        let auth;
+        let userId;
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        const ACHIEVEMENT_COLLECTION_PATH = `artifacts/${appId}/public/data/kda-achievements`;
+
+        let allAchievements = [];
+        let isAuthReady = false;
+
+        // --- MOCK DATA FOR VISUAL APPEAL ---
+        const MOCK_ACHIEVEMENTS = [
+            {
+                id: 'mock1',
+                studentName: 'Aisha Khan',
+                achievementTitle: 'State Math Olympiad Gold Medalist',
+                category: 'Academic',
+                description: 'Aisha, Grade 11, secured the gold medal in the highly competitive State Mathematics Olympiad, demonstrating exceptional problem-solving skills and dedication. She beat students from 30 schools!',
+                mediaUrl: 'https://placehold.co/400x192/1E3A8A/FBBF24?text=Math+Olympiad',
+                timestamp: Date.now() - 86400000 * 1, // 1 day ago
+            },
+            {
+                id: 'mock2',
+                studentName: 'The KDA Titans',
+                achievementTitle: 'Regional Robotics Competition Champions',
+                category: 'Sports',
+                description: 'The KDA Titans robotics team clinched the championship title at the Regional Robotics Games, impressing judges with their autonomous navigation system and teamwork.',
+                mediaUrl: 'https://placehold.co/400x192/FBBF24/1E3A8A?text=Robotics+Team',
+                timestamp: Date.now() - 86400000 * 2, // 2 days ago
+            },
+            {
+                id: 'mock3',
+                studentName: 'Leo Rodriguez',
+                achievementTitle: 'Lead Role in School Play: Hamlet',
+                category: 'Arts',
+                description: 'Leo gave a mesmerizing performance as the lead in this year\'s dramatic production. His talent and stage presence were truly remarkable, earning a standing ovation every night.',
+                mediaUrl: 'https://placehold.co/400x192/1E3A8A/FBBF24?text=Theatre+Star',
+                timestamp: Date.now() - 86400000 * 3, // 3 days ago
+            },
+            {
+                id: 'mock4',
+                studentName: 'Zoe & Ben',
+                achievementTitle: 'Annual Blood Drive Organization',
+                category: 'Leadership',
+                description: 'Zoe and Ben successfully organized the largest and most impactful annual blood drive in school history, rallying over 150 student donors for the community.',
+                mediaUrl: 'https://placehold.co/400x192/FBBF24/1E3A8A?text=Community+Impact',
+                timestamp: Date.now() - 86400000 * 4, // 4 days ago
+            },
+        ];
+        // -----------------------------------
+
+
+        /**
+         * Initializes Firebase and sets up authentication listener.
+         */
+        async function initFirebase() {
+            if (!firebaseConfig) {
+                console.error("Firebase config is missing. Cannot initialize app.");
+                document.getElementById('loading-message').textContent = "Error: Firebase configuration is missing.";
+                return;
+            }
+
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Sign in logic
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                // Auth state change listener
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        document.getElementById('current-user-id').textContent = userId;
+                        document.getElementById('user-info').textContent = `Authenticated as: ${userId}`;
+                        // Admin access is granted to any authenticated user for this demo
+                        document.getElementById('nav-admin-btn').classList.remove('hidden');
+                        document.getElementById('admin-section').classList.remove('hidden');
+
+                    } else {
+                        userId = crypto.randomUUID();
+                        document.getElementById('current-user-id').textContent = 'Anonymous';
+                    }
+                    isAuthReady = true;
+                    // Once auth is ready, start loading achievements
+                    if (db) {
+                        loadAchievements();
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error during Firebase initialization or sign-in: ", error);
+                document.getElementById('loading-message').textContent = `Error initializing: ${error.message}`;
+            }
+        }
+
+        /**
+         * Returns an SVG icon for the given category.
+         * @param {string} category - The achievement category.
+         * @returns {string} - The SVG string.
+         */
+        function getIconForCategory(category) {
+            const size = "w-6 h-6";
+            // Icons now use kda-gold for visibility in dark mode
+            switch (category) {
+                case 'Academic':
+                    // Book/Graduation Cap
+                    return `<svg xmlns="http://www.w3.org/2000/svg" class="${size} text-kda-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14v4m-5 0h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zm10-7l-3 3-3-3m3 3V7" /></svg>`;
+                case 'Sports':
+                    // Trophy/Medal
+                    return `<svg xmlns="http://www.w3.org/2000/svg" class="${size} text-kda-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2-3-.895-3-2 1.343-2 3-2zM12 15h2m-2 0h-2m-2 0H8m4 0h-2m2 0H8m4-7a5 5 0 00-5 5c0 1.28.397 2.47 1.054 3.468C8.955 18.063 10.33 19 12 19s3.045-.937 3.946-2.532C15.603 16.47 16 15.28 16 14a5 5 0 00-5-5z" /></svg>`;
+                case 'Arts':
+                    // Palette/Brush
+                    return `<svg xmlns="http://www.w3.org/2000/svg" class="${size} text-kda-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h14a2 2 0 012 2v12a4 4 0 01-4 4h-2M7 21h10M7 21s3 0 7 0m0-12V7" /></svg>`;
+                case 'Leadership':
+                    // Star/Badge
+                    return `<svg xmlns="http://www.w3.org/2000/svg" class="${size} text-kda-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.085 18.777C10.742 19.348 10 19.332 10 18.72V17a1 1 0 011-1h2a1 1 0 011 1v1.72c0 .612-.742.628-1.085.053L12 16.03l-1.915 2.747zM12 3a9 9 0 100 18A9 9 0 0012 3zm0 14a5 5 0 110-10 5 5 0 010 10z" /></svg>`;
+                default:
+                    return `<svg xmlns="http://www.w3.org/2000/svg" class="${size} text-kda-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>`; // Bolt icon
+            }
+        }
+
+        /**
+         * Real-time listener for achievements.
+         */
+        function loadAchievements() {
+            if (!db || !isAuthReady) return;
+
+            const q = collection(db, ACHIEVEMENT_COLLECTION_PATH);
+
+            onSnapshot(q, (snapshot) => {
+                const newAchievements = [];
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    newAchievements.push({
+                        id: doc.id,
+                        ...data,
+                        // Client-side sorting by creation date (newest first)
+                        timestamp: data.timestamp ? data.timestamp.toDate().getTime() : 0,
+                    });
+                });
+
+                if (newAchievements.length === 0) {
+                    // Inject mock data if the database is empty for a better first experience.
+                    allAchievements = MOCK_ACHIEVEMENTS;
+                    console.log("No real achievements found. Displaying mock data.");
+                } else {
+                    // Sort and use real data
+                    allAchievements = newAchievements.sort((a, b) => b.timestamp - a.timestamp);
+                }
+
+                applyFilters(); // Re-render the filtered/sorted data
+                document.getElementById('loading-message').classList.add('hidden');
+
+            }, (error) => {
+                console.error("Error listening to achievements: ", error);
+                document.getElementById('loading-message').textContent = `Error fetching data: ${error.message}`;
+            });
+        }
+
+        /**
+         * Renders the achievements to the DOM, filtered by the current state.
+         * @param {Array} achievements - The list of achievement objects to render.
+         */
+        function renderAchievements(achievements) {
+            const feed = document.getElementById('achievement-feed');
+            feed.innerHTML = '';
+
+            if (achievements.length === 0) {
+                document.getElementById('no-results-message').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('no-results-message').classList.add('hidden');
+
+            achievements.forEach(item => {
+                // Determine Category Colors for dynamic styling
+                // Colors are kept light to contrast against the dark card background (bg-gray-800)
+                let categoryColor = 'bg-gray-700 text-gray-200';
+                if (item.category === 'Academic') categoryColor = 'bg-blue-600 text-white';
+                else if (item.category === 'Sports') categoryColor = 'bg-green-600 text-white';
+                else if (item.category === 'Arts') categoryColor = 'bg-pink-600 text-white';
+                else if (item.category === 'Leadership') categoryColor = 'bg-indigo-600 text-white';
+
+                // Media or Placeholder HTML
+                const mediaHtml = item.mediaUrl ?
+                    `<div class="h-48 bg-gray-700 rounded-t-xl overflow-hidden">
+                        <img src="${item.mediaUrl}" alt="Achievement Media"
+                             onerror="this.onerror=null;this.src='https://placehold.co/400x192/0F172A/FBBF24?text=KDA+Media+Placeholder';"
+                             class="w-full h-full object-cover transition duration-500 hover:scale-105">
+                    </div>` :
+                    // Placeholder updated for dark theme
+                    `<div class="h-48 flex items-center justify-center bg-gray-700 text-kda-gold rounded-t-xl p-4">
+                        <div class="text-center">
+                            ${getIconForCategory(item.category)}
+                            <p class="text-xs font-semibold mt-2 text-gray-400">No Media Available</p>
+                        </div>
+                    </div>`;
+
+                const dateString = item.timestamp ? new Date(item.timestamp).toLocaleDateString() : 'N/A';
+
+                const card = document.createElement('article');
+                // Card background changed to gray-800 for dark theme
+                card.className = 'bg-gray-800 rounded-xl shadow-2xl overflow-hidden achievement-card border-b-4 border-kda-gold';
+                card.innerHTML = `
+                    ${mediaHtml}
+                    <div class="p-5">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center space-x-2">
+                                ${getIconForCategory(item.category)}
+                                <span class="text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full ${categoryColor}">${item.category}</span>
+                            </div>
+                            <span class="text-sm text-gray-400">${dateString}</span>
+                        </div>
+                        <!-- Title is now gold for maximum visibility -->
+                        <h3 class="text-2xl font-extrabold text-kda-gold mb-2 hover:text-yellow-400 transition duration-150">${item.achievementTitle}</h3>
+                        <p class="text-gray-300 text-sm mb-3 line-clamp-3">${item.description}</p>
+                        <div class="border-t border-gray-700 pt-3 mt-3 flex justify-between items-center">
+                            <p class="text-kda-light font-bold text-lg">Student: <span class="text-kda-gold">${item.studentName}</span></p>
+                            <button onclick="viewProfile('${item.studentName}')" class="text-sm text-kda-gold hover:text-yellow-400 hover:underline font-semibold transition duration-150">
+                                Celebrate &rarr;
+                            </button>
+                        </div>
+                    </div>
+                `;
+                feed.appendChild(card);
+            });
+        }
+
+        /**
+         * Applies search and filter logic and re-renders the feed.
+         */
+        function applyFilters() {
+            const searchVal = document.getElementById('search-input').value.toLowerCase();
+            const categoryVal = document.getElementById('category-filter').value;
+
+            const filteredAchievements = allAchievements.filter(item => {
+                const matchesSearch = item.studentName.toLowerCase().includes(searchVal) ||
+                                      item.achievementTitle.toLowerCase().includes(searchVal) ||
+                                      item.description.toLowerCase().includes(searchVal);
+
+                const matchesCategory = categoryVal === 'all' || item.category === categoryVal;
+
+                return matchesSearch && matchesCategory;
+            });
+
+            renderAchievements(filteredAchievements);
+        }
+
+        /**
+         * Clears all filters and search input.
+         */
+        function clearFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('category-filter').value = 'all';
+            applyFilters();
+        }
+
+        /**
+         * Simulates viewing a student profile (in a real app, this would be a new page/route).
+         * @param {string} studentName - The name of the student.
+         */
+        window.viewProfile = function(studentName) {
+            const messageElement = document.getElementById('admin-message');
+            messageElement.classList.remove('hidden', 'text-green-500', 'text-red-500');
+            messageElement.classList.add('text-kda-gold', 'text-center', 'font-bold');
+            messageElement.textContent = `Displaying mock profile for ${studentName}. (In a full application, this would load a dedicated profile page with all their achievements and gallery items).`;
+
+            // Scroll to the admin message area to make sure the user sees it
+            document.getElementById('admin-section').scrollIntoView({ behavior: 'smooth' });
+
+            // Hide after a few seconds
+            setTimeout(() => {
+                 messageElement.classList.add('hidden');
+            }, 5000);
+        }
+
+        /**
+         * Handles the submission of a new achievement.
+         * @param {Event} e - The form submission event.
+         */
+        document.getElementById('add-achievement-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!db || !auth.currentUser) {
+                console.error("Database not ready or user not authenticated.");
+                return;
+            }
+
+            const messageElement = document.getElementById('admin-message');
+            messageElement.classList.remove('hidden', 'text-green-500', 'text-red-500');
+            messageElement.classList.add('text-kda-gold');
+            messageElement.textContent = 'Posting achievement...';
+
+            const newAchievement = {
+                studentName: document.getElementById('studentName').value,
+                achievementTitle: document.getElementById('achievementTitle').value,
+                category: document.getElementById('category').value,
+                description: document.getElementById('description').value,
+                mediaUrl: document.getElementById('mediaUrl').value || '',
+                timestamp: serverTimestamp(),
+                postedBy: auth.currentUser.uid,
+            };
+
+            try {
+                // Exponential backoff retry logic
+                const maxRetries = 3;
+                let attempt = 0;
+                while (attempt < maxRetries) {
+                    try {
+                        const docRef = await addDoc(collection(db, ACHIEVEMENT_COLLECTION_PATH), newAchievement);
+                        messageElement.classList.remove('text-kda-gold');
+                        messageElement.classList.add('text-green-500');
+                        messageElement.textContent = `Success! Achievement posted with ID: ${docRef.id}`;
+                        e.target.reset(); // Clear form
+                        // Exit the loop on success
+                        break;
+                    } catch (error) {
+                        attempt++;
+                        if (attempt >= maxRetries) {
+                            throw error; // Re-throw the error if max retries reached
+                        }
+                        const delay = Math.pow(2, attempt) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        console.log(`Retry attempt ${attempt} failed. Retrying in ${delay / 1000}s...`);
+                    }
+                }
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                messageElement.classList.remove('text-kda-gold');
+                messageElement.classList.add('text-red-500');
+                messageElement.textContent = `Error posting achievement: ${error.message}`;
+            }
+
+            setTimeout(() => {
+                messageElement.classList.add('hidden');
+            }, 5000);
+        });
+
+        // Initialize on window load
+        window.onload = initFirebase;
+    </script>
+</body>
+</html>
